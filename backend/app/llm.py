@@ -92,7 +92,9 @@ def generate_json(system: str, prompt: str, schema: dict, max_tokens: int = 8000
 
 
 def _groq(messages: list[dict], max_tokens: int, json_mode: bool = False) -> str:
-    body = {"model": GROQ_MODEL, "messages": messages, "max_tokens": max_tokens}
+    # Groq's free tier counts requested max_tokens toward its TPM limit,
+    # so cap it well below the 12k/min budget.
+    body = {"model": GROQ_MODEL, "messages": messages, "max_tokens": min(max_tokens, 4000)}
     if json_mode:
         body["response_format"] = {"type": "json_object"}
     resp = requests.post(
